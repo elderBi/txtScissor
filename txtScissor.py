@@ -1,10 +1,3 @@
-#This program was revised on May, 19th, 2019, being planned to launch on May, 21st, 2019.
-#Version: 1.3
-#Copyright: Luo Ziqian
-'''README
-	This program is for people who need to extract a certain part of a file in a regular way and only available to .txt/.epud
-	For instance: Using this program to process novels
-'''
 import re, os
 import tkinter, tkinter.filedialog, tkinter.messagebox, tkinter.font
 import cn2an
@@ -20,18 +13,6 @@ def getOutputFile(file, start, end):
 def selectFile(file):
     f = tkinter.filedialog.askopenfilename(title=u'选择文件', initialdir=(os.path.expanduser(fileOperations.getDesktop())))
     return file.set(f)
-
-
-#Now this function is not available
-def openFile(file, form):
-    if form == '.txt':
-        os.system('notepad ' + file)
-    elif form == '.docx':
-        os.system('' + file)
-    elif form == '.epud':
-        os.system('' + file)
-    elif form == 'mobi':
-        os.system('' + file)
 
 
 #copy file
@@ -60,16 +41,14 @@ def textCopy(file, start, end, window):
         try:
             reExp = pattern(content, start, end) #get regular expression
             result = re.search(reExp, content, re.DOTALL).group() #get the processed content
-            outputFile = getOutputFile(file, start, end) #get the output file name
+            outputFile = getOutputFile(file, start, end)
             write.write(outputFile, result, form) #write processed content into the output file
-            temp = tkinter.messagebox.askyesno(title="Success", message='File size: ' + str(fileOperations.getFileSize(outputFile)) + 'MB (:\n' + 'Open file?') #try to ask a further question
-            if temp:
-                os.system('notepad '+outputFile) #open the file in order to check whether the content is wanted
-            else:
-                window.quit() #otherwise quit the program
+            temp = tkinter.messagebox.askyesno(title="Success", message='File size: ' + str(fileOperations.getFileSize(outputFile)) + 'MB (:\nContinue?') #try to ask a further question
+            if not temp:
+                window.quit() #quit the program
         except AttributeError: #if the content is None, a messagebox will be poped
             temp = tkinter.messagebox.askretrycancel(title="Fail", message='The Clip does not exist! ):') 
-            if temp == False:
+            if not temp:
                 window.quit()
     except Exception as e: #show the errors
         tkinter.messagebox.showerror(message='Error: ' + str(e))

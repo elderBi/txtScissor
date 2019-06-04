@@ -1,3 +1,4 @@
+#test
 from txtScissor import textCopy, generateWindow
 window = generateWindow()
 textCopy('D:/test files for txtScissor and others/三界淘宝店.txt', '99', '-1', window)
