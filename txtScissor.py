@@ -5,21 +5,10 @@
 	This program is for people who need to extract a certain part of a file in a regular way and only available to .txt/.epud
 	For instance: Using this program to process novels
 '''
-import re
-import os
-import winreg
-import tkinter
-import tkinter.filedialog
-import tkinter.messagebox
-import tkinter.font
+import re, os
+import tkinter, tkinter.filedialog, tkinter.messagebox, tkinter.font
 import cn2an
-import docx
-
-
-#file operations
-def getForm(file):
-    pattern = r'(\.txt)|(\.docx)|(\.epud)|(\.mobi)'
-    return re.search(pattern, file).group()
+from functions import fileOperations, read, write
 
 
 def getOutputFile(file, start, end):
@@ -28,103 +17,9 @@ def getOutputFile(file, start, end):
     return '/'.join(parts) #rejoin them
 
 
-def getFileSize(filePath):
-    fsize = os.path.getsize(filePath)
-    fsize = fsize / float(1024 * 1024)
-    return round(fsize, 2)
-
-
-def getDesktop():
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    return winreg.QueryValueEx(key, "Desktop")[0]
-
-
 def selectFile(file):
-    f = tkinter.filedialog.askopenfilename(title=u'选择文件', initialdir=(os.path.expanduser(getDesktop())))
+    f = tkinter.filedialog.askopenfilename(title=u'选择文件', initialdir=(os.path.expanduser(fileOperations.getDesktop())))
     return file.set(f)
-
-
-#read&write
-def read(file, form): #assign different forms of files to different functions. Now .epud and .mobi are not available
-    if form == '.txt':
-        return readInTxt(file)
-    elif form == '.docx':
-        return readInDocx(file)
-    elif form == '.epud':
-        return readInEpud(file)
-    elif form == '.mobi':
-        return readInMobi(file)
-    else:
-        return None
-
-
-def readInTxt(file): 
-    decodeList = ['utf-8', 'gb18030', 'gbk', 'gb2312', 'ISO-8859-2', 'Error'] #predicted encoding list 
-    for decode in decodeList: #try them one by one
-        try:
-            with open(file, 'r', encoding=decode) as f:
-                return f.read()
-        except:
-            if decode == 'Error':
-                raise Exception('Decoding Failed')
-            continue
-
-
-def readInDocx(file):
-    doc = docx.Document(file)
-    text = []
-    paras = doc.paragraphs
-    for element in paras:
-        text.append(element.text)
-    return '\n'.join(text)
-    
-
-def readInEpud(file):
-    pass
-
-
-def readInMobi(file):
-    pass
-
-
-def write(file, content, form): #assign different forms of files to different functions
-    if form == '.txt':
-        return writeInTxt(file, content)
-    elif form == '.docx':
-        return writeInDocx(file, content)
-    elif form == '.epud':
-        return writeInEpud(file, content)
-    elif form == '.mobi':
-        return writeInMobi(file, content)
-    else:
-        return None
-        
-
-def writeInTxt(file, content):
-    decodeList = ['gbk', 'gb18030', 'gb2312', 'utf-8', 'ISO-8859-2', 'Error'] #predicted encoding list 
-    for decode in decodeList: #try them one by one
-        try:
-            with open(file, 'wb') as f:
-                f.write(content.encode(decode))
-                break
-        except:
-            if decode == 'Error':
-                raise Exception('Decoding Failed')
-            continue
-
-
-def writeInDocx(file, content):
-    doc = docx.Document()
-    doc.add_paragraph(content)
-    doc.save(file)
-
-
-def writeInEpud(file, content):
-    pass
-
-
-def writeInMobi(file, content):
-    pass
 
 
 #Now this function is not available
@@ -160,14 +55,14 @@ def pattern(string, start, end): #assign a proper pattern
 
 def textCopy(file, start, end, window):
     try:
-        form = getForm(file) #get the form of the document
-        content = read(file, form) #get content
+        form = fileOperations.getForm(file) #get the form of the document
+        content = read.read(file, form) #get content
         try:
             reExp = pattern(content, start, end) #get regular expression
             result = re.search(reExp, content, re.DOTALL).group() #get the processed content
             outputFile = getOutputFile(file, start, end) #get the output file name
-            write(outputFile, result, form) #write processed content into the output file
-            temp = tkinter.messagebox.askyesno(title="Success", message='File size: ' + str(getFileSize(outputFile)) + 'MB (:\n' + 'Open file?') #try to ask a further question
+            write.write(outputFile, result, form) #write processed content into the output file
+            temp = tkinter.messagebox.askyesno(title="Success", message='File size: ' + str(fileOperations.getFileSize(outputFile)) + 'MB (:\n' + 'Open file?') #try to ask a further question
             if temp:
                 os.system('notepad '+outputFile) #open the file in order to check whether the content is wanted
             else:
@@ -216,20 +111,9 @@ def main():
     startButton.grid(row=2, column=1)
 
     mainWindow.mainloop()
-    
-	
-#test(only for Bi's Device)
-def test():
-    window = generateWindow()
-    textCopy('D:/test files for txtScissor and others/三界淘宝店.txt', '99', '-1', window)
-    textCopy('D:/test files for txtScissor and others/三界淘宝店.txt', '3', '334', window)
-    textCopy('D:/test files for txtScissor and others/三界淘宝店.docx', '6', '334', window)
-    textCopy('D:/test files for txtScissor and others/三界淘宝店.docx', '443', '-1', window)
-    textCopy('D:/test files for txtScissor and others/修真高手在校园.txt', '341', '442', window)
 
 
 if __name__ == '__main__':
-    # test()
     main()
     
 
